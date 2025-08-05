@@ -3,11 +3,8 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const { Application, Job, User, Resume } = require('../models');
 
-// GET all applications for a recruiter's jobs
 router.get('/', auth, async (req, res) => {
-  if (req.user.role !== 'recruiter') {
-    return res.status(403).json({ msg: 'Access denied' });
-  }
+  if (req.user.role !== 'recruiter') return res.status(403).json({ msg: 'Access denied' });
   try {
     const applications = await Application.findAll({
       include: [
@@ -18,12 +15,9 @@ router.get('/', auth, async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
     res.json(applications);
-  } catch (err) {
-    res.status(500).send('Server Error');
-  }
+  } catch (err) { res.status(500).send('Server Error'); }
 });
 
-// GET all applications for the logged-in user
 router.get('/me', auth, async (req, res) => {
   try {
     const applications = await Application.findAll({
@@ -32,31 +26,30 @@ router.get('/me', auth, async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
     res.json(applications);
-  } catch (err) {
-    res.status(500).send('Server Error');
-  }
+  } catch (err) { res.status(500).send('Server Error'); }
 });
 
-// PUT update application status (shortlist/reject)
 router.put('/:id/status', auth, async (req, res) => {
-  if (req.user.role !== 'recruiter') {
-    return res.status(403).json({ msg: 'Access denied' });
-  }
+  if (req.user.role !== 'recruiter') return res.status(403).json({ msg: 'Access denied' });
   const { status } = req.body;
-  if (!['shortlisted', 'rejected'].includes(status)) {
-    return res.status(400).json({ msg: 'Invalid status' });
-  }
+  if (!['shortlisted', 'rejected'].includes(status)) return res.status(400).json({ msg: 'Invalid status' });
   try {
-    const application = await Application.findByPk(req.params.id, { include: [User, Job] });
+    const application = await Application.findByPk(req.params.id);
     if (!application) return res.status(404).json({ msg: 'Application not found' });
-
     application.status = status;
     await application.save();
-
     res.json(application);
-  } catch (err) {
-    res.status(500).send('Server Error');
-  }
+  } catch (err) { res.status(500).send('Server Error'); }
+});
+
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const application = await Application.findByPk(req.params.id);
+    if (!application) return res.status(404).json({ msg: 'Application not found' });
+    if (application.UserId !== req.user.id) return res.status(401).json({ msg: 'User not authorized' });
+    await application.destroy();
+    res.json({ msg: 'Application withdrawn' });
+  } catch (err) { res.status(500).send('Server Error'); }
 });
 
 module.exports = router;

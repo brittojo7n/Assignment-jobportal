@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useParams } from 'react-router-dom';
-import { Container, Typography, Button, Paper, Box, Modal, TextField, Alert } from '@mui/material';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Container, Typography, Button, Paper, Box, Modal, TextField, Alert, Stack } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import BusinessIcon from '@mui/icons-material/Business';
+import { jwtDecode } from 'jwt-decode';
 
 const modalStyle = {
   position: 'absolute',
@@ -19,7 +20,9 @@ const modalStyle = {
 
 const JobDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [job, setJob] = useState(null);
+  const [user, setUser] = useState(null);
   const [open, setOpen] = useState(false);
   const [resume, setResume] = useState(null);
   const [error, setError] = useState('');
@@ -27,40 +30,36 @@ const JobDetail = () => {
   const token = localStorage.getItem('token');
 
   useEffect(() => {
+    if (token) {
+      try { setUser(jwtDecode(token).user); } catch (e) { setUser(null); }
+    }
     const fetchJob = async () => {
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/jobs/${id}`);
-      setJob(res.data);
+      try {
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/jobs/${id}`);
+        setJob(res.data);
+      } catch (err) {
+        navigate('/');
+      }
     };
     fetchJob();
-  }, [id]);
+  }, [id, token, navigate]);
 
   const handleOpen = () => setOpen(true);
-  const handleClose = () => {
-    setOpen(false);
-    setError('');
-    setSuccess('');
-  };
-
+  const handleClose = () => { setOpen(false); setError(''); setSuccess(''); };
   const onFileChange = (e) => setResume(e.target.files[0]);
 
   const handleApply = async (e) => {
     e.preventDefault();
-    if (!resume) {
-      setError('Please upload your resume.');
-      return;
-    }
+    if (!resume) { setError('Please upload your resume.'); return; }
     const formData = new FormData();
     formData.append('resume', resume);
-
     try {
       const config = { headers: { 'Content-Type': 'multipart/form-data', 'x-auth-token': token } };
       await axios.post(`${process.env.REACT_APP_API_URL}/jobs/${id}/apply`, formData, config);
       setSuccess('Application submitted successfully!');
-      setError('');
       setTimeout(handleClose, 2000);
     } catch (err) {
       setError(err.response?.data?.msg || 'Failed to apply.');
-      setSuccess('');
     }
   };
 
@@ -74,26 +73,37 @@ const JobDetail = () => {
     }
   };
 
+  const handleDeleteJob = async () => {
+    if (window.confirm('Are you sure you want to permanently delete this job posting?')) {
+      try {
+        const config = { headers: { 'x-auth-token': token } };
+        await axios.delete(`${process.env.REACT_APP_API_URL}/jobs/${id}`, config);
+        alert('Job posting deleted.');
+        navigate('/');
+      } catch (err) {
+        alert('Failed to delete job posting.');
+      }
+    }
+  };
+
   if (!job) return <Typography>Loading...</Typography>;
+
+  const isOwner = user && user.role === 'recruiter' && user.id === job.recruiterId;
 
   return (
     <Container>
       <Paper sx={{ p: 4, mt: 4 }}>
         <Typography variant="h4" gutterBottom>{job.title}</Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', my: 1, color: 'text.secondary' }}>
-          <BusinessIcon sx={{ mr: 1 }} />
-          <Typography variant="h6">{job.company}</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, color: 'text.secondary' }}>
-          <LocationOnIcon sx={{ mr: 1 }} />
-          <Typography variant="subtitle1">{job.location}</Typography>
-        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', my: 1, color: 'text.secondary' }}><BusinessIcon sx={{ mr: 1 }} /><Typography variant="h6">{job.company}</Typography></Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, color: 'text.secondary' }}><LocationOnIcon sx={{ mr: 1 }} /><Typography variant="subtitle1">{job.location}</Typography></Box>
         <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>{job.description}</Typography>
-        <Box sx={{ mt: 3 }}>
-          <Button variant="contained" onClick={handleOpen} disabled={!token}>Apply Now</Button>
-          <Button variant="outlined" sx={{ ml: 2 }} onClick={handleSaveJob} disabled={!token}>Save Job</Button>
-          {!token && <Typography variant="caption" color="error" sx={{ ml: 2 }}>Please log in to apply or save jobs.</Typography>}
-        </Box>
+        <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
+          {user && user.role === 'applicant' && (
+            <><Button variant="contained" onClick={handleOpen}>Apply Now</Button><Button variant="outlined" onClick={handleSaveJob}>Save Job</Button></>
+          )}
+          {isOwner && (<Button variant="contained" color="error" onClick={handleDeleteJob}>Delete Posting</Button>)}
+        </Stack>
+        {!user && <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>Please log in to apply or save jobs.</Typography>}
       </Paper>
       <Modal open={open} onClose={handleClose}>
         <Box sx={modalStyle} component="form" onSubmit={handleApply}>

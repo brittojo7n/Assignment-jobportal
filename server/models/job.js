@@ -4,8 +4,8 @@ module.exports = (sequelize, DataTypes) => {
   class Job extends Model {
     static associate(models) {
       Job.belongsTo(models.User, { as: 'Recruiter', foreignKey: 'recruiterId' });
-      Job.hasMany(models.Application, { foreignKey: 'JobId' });
-      Job.hasMany(models.SavedJob, { foreignKey: 'JobId' });
+      Job.hasMany(models.Application, { foreignKey: 'JobId', onDelete: 'CASCADE' });
+      Job.hasMany(models.SavedJob, { foreignKey: 'JobId', onDelete: 'CASCADE' });
     }
   }
   Job.init({
