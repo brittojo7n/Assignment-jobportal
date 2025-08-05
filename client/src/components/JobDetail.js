@@ -6,16 +6,19 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import BusinessIcon from '@mui/icons-material/Business';
 import { jwtDecode } from 'jwt-decode';
 
+// Updated modalStyle to match the new theme
 const modalStyle = {
   position: 'absolute',
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
   width: 400,
-  bgcolor: 'background.paper',
+  bgcolor: 'rgba(30, 41, 59, 0.8)', // Semi-transparent dark background
+  backdropFilter: 'blur(12px)',
+  border: '1px solid rgba(255, 255, 255, 0.1)',
   boxShadow: 24,
   p: 4,
-  borderRadius: 2,
+  borderRadius: 3, // Corresponds to shape.borderRadius in theme
 };
 
 const JobDetail = () => {
@@ -92,22 +95,16 @@ const JobDetail = () => {
 
   return (
     <Container>
-      <Paper sx={{ p: 4, mt: 4 }}>
+      <Paper sx={{ p: 4, mt: 4, backgroundColor: 'transparent' }}>
         <Typography variant="h4" gutterBottom>{job.title}</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', my: 1, color: 'text.secondary' }}><BusinessIcon sx={{ mr: 1 }} /><Typography variant="h6">{job.company}</Typography></Box>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, color: 'text.secondary' }}><LocationOnIcon sx={{ mr: 1 }} /><Typography variant="subtitle1">{job.location}</Typography></Box>
         <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>{job.description}</Typography>
         <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
           {user && user.role === 'applicant' && (
-            <>
-              <Button variant="contained" onClick={handleOpen}>Apply Now</Button>
-              <Button variant="outlined" onClick={handleSaveJob}>Save Job</Button>
-            </>
+            <><Button variant="contained" onClick={handleOpen}>Apply Now</Button><Button variant="outlined" onClick={handleSaveJob}>Save Job</Button></>
           )}
-          
-          {isOwner && (
-            <Button variant="contained" color="error" onClick={handleDeleteJob}>Delete Posting</Button>
-          )}
+          {isOwner && (<Button variant="contained" color="error" onClick={handleDeleteJob}>Delete Posting</Button>)}
         </Stack>
         {!user && <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>Please log in to apply or save jobs.</Typography>}
       </Paper>
