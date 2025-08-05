@@ -19,7 +19,9 @@ const MyApplications = () => {
         console.error("Failed to fetch applications:", error);
       }
     };
-    if (token) fetchApplications();
+    if (token) {
+      fetchApplications();
+    }
   }, [token]);
 
   const handleWithdraw = async (applicationId) => {
@@ -52,22 +54,33 @@ const MyApplications = () => {
           </Typography>
         ) : (
           <List>
-            {applications.map((app, index) => (
-              <React.Fragment key={app.id}>
-                <ListItem
-                  secondaryAction={
-                    <Stack direction="row" alignItems="center" spacing={1}>
-                      {getStatusChip(app.status)}
-                      <IconButton edge="end" aria-label="withdraw" onClick={() => handleWithdraw(app.id)} title="Withdraw Application"><DeleteIcon /></IconButton>
-                      <IconButton edge="end" aria-label="view job" component={Link} to={`/jobs/${app.JobId}`} title="View Job Details"><ArrowForwardIosIcon /></IconButton>
-                    </Stack>
-                  }
-                >
-                  <ListItemText primary={app.Job.title} secondary={`${app.Job.company} - ${app.Job.location}`} />
-                </ListItem>
-                {index < applications.length - 1 && <Divider />}
-              </React.Fragment>
-            ))}
+            {applications.map((app, index) => {
+              const jobExists = app.Job !== null;
+              return (
+                <React.Fragment key={app.id}>
+                  <ListItem
+                    secondaryAction={
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        {getStatusChip(app.status)}
+                        <IconButton edge="end" aria-label="withdraw" onClick={() => handleWithdraw(app.id)} title="Withdraw Application">
+                          <DeleteIcon />
+                        </IconButton>
+                        <IconButton edge="end" aria-label="view job" component={Link} to={`/jobs/${app.JobId}`} title="View Job Details" disabled={!jobExists}>
+                          <ArrowForwardIosIcon />
+                        </IconButton>
+                      </Stack>
+                    }
+                  >
+                    <ListItemText
+                      primary={jobExists ? app.Job.title : "Job Posting No Longer Available"}
+                      secondary={jobExists ? `${app.Job.company} - ${app.Job.location}` : "This listing has been removed by the recruiter."}
+                      primaryTypographyProps={{ style: jobExists ? {} : { fontStyle: 'italic', color: 'grey' } }}
+                    />
+                  </ListItem>
+                  {index < applications.length - 1 && <Divider />}
+                </React.Fragment>
+              )
+            })}
           </List>
         )}
       </Paper>
