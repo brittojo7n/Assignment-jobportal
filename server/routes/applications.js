@@ -29,6 +29,36 @@ router.get('/me', auth, async (req, res) => {
   } catch (err) { res.status(500).send('Server Error'); }
 });
 
+router.get('/job/:jobId', auth, async (req, res) => {
+  if (req.user.role !== 'recruiter') {
+    return res.status(403).json({ msg: 'Access denied' });
+  }
+  try {
+    // First, verify the recruiter owns the job they are requesting applications for
+    const job = await Job.findByPk(req.params.jobId);
+    if (!job) {
+      return res.status(404).json({ msg: 'Job not found' });
+    }
+    if (job.recruiterId !== req.user.id) {
+      return res.status(401).json({ msg: 'User not authorized' });
+    }
+
+    // If they own the job, fetch the applications
+    const applications = await Application.findAll({
+      where: { JobId: req.params.jobId },
+      include: [
+        { model: User, attributes: ['firstName', 'lastName', 'email'] },
+        { model: Resume }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+    res.json(applications);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 router.put('/:id/status', auth, async (req, res) => {
   if (req.user.role !== 'recruiter') return res.status(403).json({ msg: 'Access denied' });
   const { status } = req.body;

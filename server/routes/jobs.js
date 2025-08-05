@@ -4,6 +4,7 @@ const auth = require('../middleware/auth');
 const { Job, Application, Resume, User, SavedJob } = require('../models');
 const multer = require('multer');
 const sendEmail = require('../utils/mailer');
+const { sequelize } = require('../models');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'uploads/'),
@@ -43,6 +44,29 @@ router.delete('/:id', auth, async (req, res) => {
     await job.destroy();
     res.json({ msg: 'Job removed' });
   } catch (err) { res.status(500).send('Server Error'); }
+});
+
+router.get('/my-jobs/all', auth, async (req, res) => {
+  if (req.user.role !== 'recruiter') {
+    return res.status(403).json({ msg: 'Access denied' });
+  }
+  try {
+    const jobs = await Job.findAll({
+      where: { recruiterId: req.user.id },
+      attributes: {
+        include: [[sequelize.fn("COUNT", sequelize.col("Applications.id")), "applicationCount"]]
+      },
+      include: [{
+        model: Application, attributes: []
+      }],
+      group: ['Job.id'],
+      order: [['createdAt', 'DESC']]
+    });
+    res.json(jobs);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
 });
 
 router.post('/:id/apply', [auth, upload.single('resume')], async (req, res) => {

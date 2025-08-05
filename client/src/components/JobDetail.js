@@ -99,9 +99,15 @@ const JobDetail = () => {
         <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>{job.description}</Typography>
         <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
           {user && user.role === 'applicant' && (
-            <><Button variant="contained" onClick={handleOpen}>Apply Now</Button><Button variant="outlined" onClick={handleSaveJob}>Save Job</Button></>
+            <>
+              <Button variant="contained" onClick={handleOpen}>Apply Now</Button>
+              <Button variant="outlined" onClick={handleSaveJob}>Save Job</Button>
+            </>
           )}
-          {isOwner && (<Button variant="contained" color="error" onClick={handleDeleteJob}>Delete Posting</Button>)}
+          
+          {isOwner && (
+            <Button variant="contained" color="error" onClick={handleDeleteJob}>Delete Posting</Button>
+          )}
         </Stack>
         {!user && <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>Please log in to apply or save jobs.</Typography>}
       </Paper>
