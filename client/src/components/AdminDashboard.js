@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Box, Typography, Grid, Paper, List, ListItem, ListItemText, ListItemButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Select, MenuItem, Link, CircularProgress, IconButton, Stack } from '@mui/material';
+import { Box, Typography, Grid, Paper, List, ListItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Select, MenuItem, Link, CircularProgress, IconButton, Stack } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PageviewIcon from '@mui/icons-material/Pageview';
+import BusinessIcon from '@mui/icons-material/Business';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 
 const AdminDashboard = () => {
   const [myJobs, setMyJobs] = useState([]);
@@ -83,25 +85,65 @@ const AdminDashboard = () => {
                 You have not posted any jobs yet.
               </Typography>
             ) : (
-              <List component="nav" sx={{ p: 0 }}>
+              <List component="nav" sx={{ p: 1 }}>
                 {myJobs.map((job) => (
                   <ListItem
                     key={job.id}
-                    // The disablePadding prop has been removed from this ListItem
+                    button
+                    selected={selectedJob?.id === job.id}
+                    onClick={() => handleJobSelect(job)}
+                    sx={{
+                      borderRadius: 2,
+                      mb: 1,
+                      py: 1.5,
+                      px: 2,
+                      transition: 'box-shadow 0.2s ease-in-out, background-color 0.2s ease-in-out',
+                      '&:hover': {
+                        bgcolor: 'action.hover',
+                        boxShadow: '0 0 10px rgba(255, 255, 255, 0.2)',
+                      },
+                      '&.Mui-selected': {
+                        boxShadow: '0 0 10px rgba(129, 140, 248, 0.5)', // A glow for the selected item
+                      }
+                    }}
                     secondaryAction={
                       <Stack direction="row" spacing={0.5}>
-                        <IconButton component={RouterLink} to={`/jobs/${job.id}`} title="View Job Details">
-                            <PageviewIcon />
+                        <IconButton
+                          component={RouterLink}
+                          to={`/jobs/${job.id}`}
+                          title="View Job Details"
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          <PageviewIcon />
                         </IconButton>
-                        <IconButton onClick={() => handleDeleteJob(job.id)} title="Delete Job Posting">
-                            <DeleteIcon />
+                        <IconButton
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleDeleteJob(job.id);
+                          }}
+                          title="Delete Job Posting"
+                        >
+                          <DeleteIcon />
                         </IconButton>
                       </Stack>
                     }
                   >
-                    <ListItemButton selected={selectedJob?.id === job.id} onClick={() => handleJobSelect(job)}>
-                      <ListItemText primary={job.title} secondary={`${job.applicationCount} Applications`} />
-                    </ListItemButton>
+                    <Box sx={{ pr: 6 }}>
+                        <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
+                          {job.title}
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', my: 0.5, color: 'text.secondary' }}>
+                          <BusinessIcon sx={{ mr: 1, fontSize: '1rem' }} />
+                          <Typography variant="body2">{job.company}</Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
+                          <LocationOnIcon sx={{ mr: 1, fontSize: '1rem' }} />
+                          <Typography variant="body2">{job.location}</Typography>
+                        </Box>
+                        <Typography variant="body2" sx={{ mt: 1, fontWeight: 'bold' }}>
+                          {job.applicationCount} Applications
+                        </Typography>
+                      </Box>
                   </ListItem>
                 ))}
               </List>
@@ -118,11 +160,7 @@ const AdminDashboard = () => {
               ) : (
                 <TableContainer component={Paper}>
                   <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Applicant</TableCell><TableCell>Email</TableCell><TableCell>Resume</TableCell><TableCell>Status</TableCell>
-                      </TableRow>
-                    </TableHead>
+                    <TableHead><TableRow><TableCell>Applicant</TableCell><TableCell>Email</TableCell><TableCell>Resume</TableCell><TableCell>Status</TableCell></TableRow></TableHead>
                     <TableBody>
                       {applicants.length > 0 ? applicants.map((app) => (
                         <TableRow key={app.id}>
@@ -136,9 +174,7 @@ const AdminDashboard = () => {
                           </TableCell>
                         </TableRow>
                       )) : (
-                        <TableRow>
-                          <TableCell colSpan={4} align="center">No applicants for this job yet.</TableCell>
-                        </TableRow>
+                        <TableRow><TableCell colSpan={4} align="center">No applicants for this job yet.</TableCell></TableRow>
                       )}
                     </TableBody>
                   </Table>
@@ -146,9 +182,9 @@ const AdminDashboard = () => {
               )}
             </Box>
           ) : (
-            <Paper sx={{ p: 4, textAlign: 'center', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Box sx={{ height: '100%', minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px dashed', borderColor: 'divider', borderRadius: 3, p: 3 }}>
               <Typography variant="h6" color="text.secondary">Select a job posting from the left to view applicants.</Typography>
-            </Paper>
+            </Box>
           )}
         </Grid>
       </Grid>
