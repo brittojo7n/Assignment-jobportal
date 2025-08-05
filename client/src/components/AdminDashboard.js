@@ -23,6 +23,7 @@ const AdminDashboard = () => {
     if (token) {
       fetchMyJobs();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const handleJobSelect = async (job) => {
