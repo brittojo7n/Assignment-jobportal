@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { React, useState, useEffect } from 'react';
 import axios from 'axios';
-import { Box, Typography, Grid, Paper, List, ListItemButton, ListItemText, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Select, MenuItem, Link, CircularProgress } from '@mui/material';
+import { Box, Typography, Grid, Paper, List, ListItem, ListItemText, ListItemButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Select, MenuItem, Link, CircularProgress, IconButton } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const AdminDashboard = () => {
   const [myJobs, setMyJobs] = useState([]);
@@ -11,18 +12,19 @@ const AdminDashboard = () => {
   const token = localStorage.getItem('token');
   const config = { headers: { 'x-auth-token': token } };
 
+  const fetchMyJobs = async () => {
+    setIsJobsLoading(true);
+    try {
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/jobs/my-jobs/all`, config);
+      setMyJobs(res.data);
+    } catch (error) {
+      console.error("Failed to fetch jobs:", error);
+    } finally {
+      setIsJobsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchMyJobs = async () => {
-      setIsJobsLoading(true);
-      try {
-        const res = await axios.get(`${process.env.REACT_APP_API_URL}/jobs/my-jobs/all`, config);
-        setMyJobs(res.data);
-      } catch (error) {
-        console.error("Failed to fetch jobs:", error);
-      } finally {
-        setIsJobsLoading(false);
-      }
-    };
     if (token) fetchMyJobs();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
@@ -49,6 +51,23 @@ const AdminDashboard = () => {
       console.error("Failed to update status:", error);
     }
   };
+  
+  const handleDeleteJob = async (jobId) => {
+    if (window.confirm('Are you sure you want to permanently delete this job posting?')) {
+        try {
+            await axios.delete(`${process.env.REACT_APP_API_URL}/jobs/${jobId}`, config);
+            // Refresh the job list
+            fetchMyJobs();
+            // If the deleted job was the one selected, clear the right panel
+            if (selectedJob?.id === jobId) {
+                setSelectedJob(null);
+                setApplicants([]);
+            }
+        } catch (err) {
+            alert('Failed to delete job posting.');
+        }
+    }
+  };
 
   return (
     <Box>
@@ -66,9 +85,18 @@ const AdminDashboard = () => {
             ) : (
               <List component="nav">
                 {myJobs.map((job) => (
-                  <ListItemButton key={job.id} selected={selectedJob?.id === job.id} onClick={() => handleJobSelect(job)}>
-                    <ListItemText primary={job.title} secondary={`${job.applicationCount} Applications`} />
-                  </ListItemButton>
+                  <ListItem
+                    key={job.id}
+                    secondaryAction={
+                      <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteJob(job.id)} title="Delete Job Posting">
+                        <DeleteIcon />
+                      </IconButton>
+                    }
+                  >
+                    <ListItemButton selected={selectedJob?.id === job.id} onClick={() => handleJobSelect(job)}>
+                      <ListItemText primary={job.title} secondary={`${job.applicationCount} Applications`} />
+                    </ListItemButton>
+                  </ListItem>
                 ))}
               </List>
             )}
