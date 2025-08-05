@@ -1,7 +1,9 @@
-import { React, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Box, Typography, Grid, Paper, List, ListItem, ListItemText, ListItemButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Select, MenuItem, Link, CircularProgress, IconButton } from '@mui/material';
+import { Box, Typography, Grid, Paper, List, ListItem, ListItemText, ListItemButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Select, MenuItem, Link, CircularProgress, IconButton, Stack } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 import DeleteIcon from '@mui/icons-material/Delete';
+import PageviewIcon from '@mui/icons-material/Pageview';
 
 const AdminDashboard = () => {
   const [myJobs, setMyJobs] = useState([]);
@@ -56,9 +58,7 @@ const AdminDashboard = () => {
     if (window.confirm('Are you sure you want to permanently delete this job posting?')) {
         try {
             await axios.delete(`${process.env.REACT_APP_API_URL}/jobs/${jobId}`, config);
-            // Refresh the job list
             fetchMyJobs();
-            // If the deleted job was the one selected, clear the right panel
             if (selectedJob?.id === jobId) {
                 setSelectedJob(null);
                 setApplicants([]);
@@ -83,14 +83,20 @@ const AdminDashboard = () => {
                 You have not posted any jobs yet.
               </Typography>
             ) : (
-              <List component="nav">
+              <List component="nav" sx={{ p: 0 }}>
                 {myJobs.map((job) => (
                   <ListItem
                     key={job.id}
+                    // The disablePadding prop has been removed from this ListItem
                     secondaryAction={
-                      <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteJob(job.id)} title="Delete Job Posting">
-                        <DeleteIcon />
-                      </IconButton>
+                      <Stack direction="row" spacing={0.5}>
+                        <IconButton component={RouterLink} to={`/jobs/${job.id}`} title="View Job Details">
+                            <PageviewIcon />
+                        </IconButton>
+                        <IconButton onClick={() => handleDeleteJob(job.id)} title="Delete Job Posting">
+                            <DeleteIcon />
+                        </IconButton>
+                      </Stack>
                     }
                   >
                     <ListItemButton selected={selectedJob?.id === job.id} onClick={() => handleJobSelect(job)}>
