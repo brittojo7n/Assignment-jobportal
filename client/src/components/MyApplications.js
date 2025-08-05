@@ -19,9 +19,7 @@ const MyApplications = () => {
         console.error("Failed to fetch applications:", error);
       }
     };
-    if (token) {
-      fetchApplications();
-    }
+    if (token) fetchApplications();
   }, [token]);
 
   const handleWithdraw = async (applicationId) => {
@@ -31,7 +29,6 @@ const MyApplications = () => {
         await axios.delete(`${process.env.REACT_APP_API_URL}/applications/${applicationId}`, config);
         setApplications(applications.filter((app) => app.id !== applicationId));
       } catch (error) {
-        console.error("Failed to withdraw application:", error);
         alert('Could not withdraw application. Please try again.');
       }
     }
@@ -39,12 +36,9 @@ const MyApplications = () => {
 
   const getStatusChip = (status) => {
     switch (status) {
-      case 'shortlisted':
-        return <Chip label="Shortlisted" color="success" size="small" />;
-      case 'rejected':
-        return <Chip label="Rejected" color="error" size="small" />;
-      default:
-        return <Chip label="Pending" color="warning" size="small" />;
+      case 'shortlisted': return <Chip label="Shortlisted" color="success" size="small" />;
+      case 'rejected': return <Chip label="Rejected" color="error" size="small" />;
+      default: return <Chip label="Pending" color="warning" size="small" />;
     }
   };
 
@@ -52,43 +46,30 @@ const MyApplications = () => {
     <Box>
       <Typography variant="h4" gutterBottom>My Applications</Typography>
       <Paper>
-        <List>
-          {applications.map((app, index) => (
-            <React.Fragment key={app.id}>
-              <ListItem
-                secondaryAction={
-                  <Stack direction="row" alignItems="center" spacing={1}>
-                    {getStatusChip(app.status)}
-                    <IconButton
-                      edge="end"
-                      aria-label="withdraw"
-                      onClick={() => handleWithdraw(app.id)}
-                      title="Withdraw Application"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                    <IconButton
-                      edge="end"
-                      aria-label="view job"
-                      component={Link}
-                      // This is the corrected line
-                      to={`/jobs/${app.JobId}`}
-                      title="View Job Details"
-                    >
-                      <ArrowForwardIosIcon />
-                    </IconButton>
-                  </Stack>
-                }
-              >
-                <ListItemText
-                  primary={app.Job.title}
-                  secondary={`${app.Job.company} - ${app.Job.location}`}
-                />
-              </ListItem>
-              {index < applications.length - 1 && <Divider />}
-            </React.Fragment>
-          ))}
-        </List>
+        {applications.length === 0 ? (
+          <Typography sx={{ p: 4, textAlign: 'center', color: 'text.secondary' }}>
+            You have not applied to any jobs yet.
+          </Typography>
+        ) : (
+          <List>
+            {applications.map((app, index) => (
+              <React.Fragment key={app.id}>
+                <ListItem
+                  secondaryAction={
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      {getStatusChip(app.status)}
+                      <IconButton edge="end" aria-label="withdraw" onClick={() => handleWithdraw(app.id)} title="Withdraw Application"><DeleteIcon /></IconButton>
+                      <IconButton edge="end" aria-label="view job" component={Link} to={`/jobs/${app.JobId}`} title="View Job Details"><ArrowForwardIosIcon /></IconButton>
+                    </Stack>
+                  }
+                >
+                  <ListItemText primary={app.Job.title} secondary={`${app.Job.company} - ${app.Job.location}`} />
+                </ListItem>
+                {index < applications.length - 1 && <Divider />}
+              </React.Fragment>
+            ))}
+          </List>
+        )}
       </Paper>
     </Box>
   );

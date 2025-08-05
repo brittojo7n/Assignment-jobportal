@@ -38,21 +38,29 @@ const SavedJobs = () => {
     <Box>
       <Typography variant="h4" gutterBottom>Saved Jobs</Typography>
       <Paper>
-        <List>
-          {savedJobs.map((saved, index) => (
-            <React.Fragment key={saved.id}>
-              <ListItem secondaryAction={
-                <Stack direction="row" spacing={1}>
-                  <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(saved.id)} title="Remove Saved Job"><DeleteIcon /></IconButton>
-                  <IconButton edge="end" aria-label="view" component={Link} to={`/jobs/${saved.Job.id}`} title="View Job Details"><ArrowForwardIosIcon /></IconButton>
-                </Stack>
-              }>
-                <ListItemText primary={saved.Job.title} secondary={`${saved.Job.company} - ${saved.Job.location}`} />
-              </ListItem>
-              {index < savedJobs.length - 1 && <Divider />}
-            </React.Fragment>
-          ))}
-        </List>
+        {savedJobs.length === 0 ? (
+          <Typography sx={{ p: 4, textAlign: 'center', color: 'text.secondary' }}>
+            You have not saved any jobs yet.
+          </Typography>
+        ) : (
+          <List>
+            {savedJobs.map((saved, index) => (
+              <React.Fragment key={saved.id}>
+                <ListItem
+                  secondaryAction={
+                    <Stack direction="row" spacing={1}>
+                      <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(saved.id)} title="Remove Saved Job"><DeleteIcon /></IconButton>
+                      <IconButton edge="end" aria-label="view" component={Link} to={`/jobs/${saved.Job.id}`} title="View Job Details"><ArrowForwardIosIcon /></IconButton>
+                    </Stack>
+                  }
+                >
+                  <ListItemText primary={saved.Job.title} secondary={`${saved.Job.company} - ${saved.Job.location}`} />
+                </ListItem>
+                {index < savedJobs.length - 1 && <Divider />}
+              </React.Fragment>
+            ))}
+          </List>
+        )}
       </Paper>
     </Box>
   );
