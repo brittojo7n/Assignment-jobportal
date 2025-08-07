@@ -3,7 +3,7 @@
   <h1>
     Job Portal - Full-Stack (PERN) Application
   </h1>
-  <strong>A modern, feature-rich platform for job seekers and recruiters built with React, Node.js, and PostgreSQL.</strong>
+  <strong>A portal aimed at job seekers and recruiters built with React, Node.js, and PostgreSQL.</strong>
   <br />
   <br />
 </div>
